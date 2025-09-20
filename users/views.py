@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 # from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from users.models import User
-# from users.pagination import UsersPagination
+from users.pagination import UsersPagination
 # from users.permissions import IsOwner, IsSupervisor
 from users.serializer import UserSerializer
 
@@ -33,7 +33,7 @@ class UserListAPIView(ListAPIView):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # pagination_class = UsersPagination
+    pagination_class = UsersPagination
     permission_classes = (IsAuthenticated,)
 
     # @swagger_auto_schema(
