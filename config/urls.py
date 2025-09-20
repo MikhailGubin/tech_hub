@@ -6,6 +6,7 @@ from config import settings
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("users/", include("users.urls", namespace="users")),
+    path("electronics/", include("electronics.urls", namespace="electronics"))
 ]
 
 if settings.DEBUG:
