@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from users.models import User
 from users.pagination import UsersPagination
-# from users.permissions import IsOwner, IsSupervisor
+from users.permissions import IsOwner, IsSupervisor
 from users.serializer import UserSerializer
 
 
@@ -65,7 +65,7 @@ class UserUpdateAPIView(UpdateAPIView):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # permission_classes = (IsAuthenticated, IsSupervisor | IsOwner)
+    permission_classes = (IsAuthenticated, IsSupervisor | IsOwner)
 
     # @swagger_auto_schema(
     #     operation_id="user_full_update", operation_summary="Полностью обновляет данные о Пользователе."
@@ -85,7 +85,7 @@ class UserDestroyAPIView(DestroyAPIView):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # permission_classes = (IsAuthenticated, IsSupervisor)
+    permission_classes = (IsAuthenticated, IsSupervisor)
 
     # @swagger_auto_schema(operation_id="user_delete", operation_summary="Удаление Пользователя")
     # def delete(self, request, *args, **kwargs):
