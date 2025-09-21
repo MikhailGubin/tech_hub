@@ -7,8 +7,8 @@ from .views import ProductViewSet, ContactViewSet, NetworkNodeListAPIView, Netwo
 app_name = ElectronicsConfig.name
 
 router = DefaultRouter()
-router.register(r'products', ProductViewSet)
-router.register(r'contacts', ContactViewSet)
+router.register(r'products', ProductViewSet, basename='product')
+router.register(r'contacts', ContactViewSet, basename='contact')
 
 
 urlpatterns = [

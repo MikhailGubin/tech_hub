@@ -39,22 +39,22 @@ class Contact(models.Model):
         default="",
     )
 
-    class Meta:
-        verbose_name = "Контакт"
-        verbose_name_plural = "Контакты"
-
-    def __str__(self):
-        return f"Контакт: {self.email}, {self.country}, {self.city}"
-
     def clean(self):
+        """ Проверяет связи между городом, улицей и номером дома """
         super().clean()
-        # Пример: если указана улица, но не указан город - это ошибка
         if self.street and not self.city:
             raise ValidationError({'city': 'Если указана улица, необходимо указать и город.'})
         if self.house_number and not self.city:
             raise ValidationError({'city': 'Если указан номер дома, необходимо указать и город.'})
         if self.house_number and not self.street:
             raise ValidationError({'street': 'Если указан номер дома, необходимо указать и улицу.'})
+
+    class Meta:
+        verbose_name = "Контакт"
+        verbose_name_plural = "Контакты"
+
+    def __str__(self):
+        return f"Контакт: {self.email}, {self.country}, {self.city}"
 
 
 class Product(models.Model):

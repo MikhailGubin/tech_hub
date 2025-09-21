@@ -1,10 +1,36 @@
-from datetime import timedelta
-
 from django.utils import timezone
 from rest_framework.serializers import ValidationError
 
 
-class ProductValidator:
+class AddressContactValidator:
+    """Проверяет связи между городом, улицей и номером дома"""
+
+    def __call__(self, attrs):
+        """
+        attrs - это уже частично валидированные данные
+        """
+        city = attrs.get('city', '')
+        street = attrs.get('street', '')
+        house_number = attrs.get('house_number', '')
+
+        errors = {}
+
+        if street and not city:
+            errors['city'] = 'Если указана улица, необходимо указать и город.'
+
+        if house_number and not city:
+            errors['city'] = 'Если указан номер дома, необходимо указать и город.'
+
+        if house_number and not street:
+            errors['street'] = 'Если указан номер дома, необходимо указать и улицу.'
+
+        if errors:
+            raise ValidationError(errors)
+
+        return attrs
+
+
+class ReleaseDateProductValidator:
     """Проверяет, что продукт не может выйти на рынок в будущем"""
 
     def __init__(self, field):

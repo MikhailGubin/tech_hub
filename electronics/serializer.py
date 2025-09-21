@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from electronics.models import NetworkNode
+from electronics.models import NetworkNode, Contact, Product
 from django.core.validators import MinValueValidator
-from electronics.validators import ProductValidator, SupplierNetworkNodeValidator
+from electronics.validators import ReleaseDateProductValidator, SupplierNetworkNodeValidator, AddressContactValidator
 
 
 class ContactSerializer(serializers.ModelSerializer):
@@ -11,7 +11,7 @@ class ContactSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = NetworkNode
+        model = Contact
 
         fields = [
             "id",
@@ -22,6 +22,12 @@ class ContactSerializer(serializers.ModelSerializer):
             "house_number",
         ]
 
+    def validate(self, attrs):
+        """Вызываем валидатор, который проверяет связи между городом, улицей и номером дома"""
+        attrs = super().validate(attrs)
+        validator = AddressContactValidator()
+        return validator(attrs)
+
 
 class ProductSerializer(serializers.ModelSerializer):
     """
@@ -29,7 +35,7 @@ class ProductSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = NetworkNode
+        model = Product
 
         fields = [
             "id",
@@ -38,7 +44,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "release_date",
         ]
         validators = [
-            ProductValidator(field="release_date"),
+            ReleaseDateProductValidator(field="release_date"),
         ]
 
 
