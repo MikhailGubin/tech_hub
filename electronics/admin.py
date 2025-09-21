@@ -12,7 +12,7 @@ class NetworkNodeAdmin(admin.ModelAdmin):
     actions = ["clear_debt"]
 
     # Поле только для чтения в админке
-    readonly_fields = ('created_at', 'level')
+    readonly_fields = ('created_at', )
 
     def get_supplier_link(self, obj):
         if obj.supplier:

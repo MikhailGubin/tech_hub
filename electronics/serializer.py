@@ -22,23 +22,24 @@ class ContactSerializer(serializers.ModelSerializer):
             "house_number",
         ]
 
-    class ContactSerializer(serializers.ModelSerializer):
-        """
-        Сериализатор для модели "Продукт" с кастомным валидатором.
-        """
 
-        class Meta:
-            model = NetworkNode
+class ProductSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели "Продукт" с кастомным валидатором.
+    """
 
-            fields = [
-                "id",
-                "name",
-                "model",
-                "release_date",
-            ]
-            validators = [
-                ProductValidator(field="release_date"),
-            ]
+    class Meta:
+        model = NetworkNode
+
+        fields = [
+            "id",
+            "name",
+            "model",
+            "release_date",
+        ]
+        validators = [
+            ProductValidator(field="release_date"),
+        ]
 
 
 class NetworkNodeSerializer(serializers.ModelSerializer):
@@ -59,7 +60,7 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
             "debt",
             "created_at",
         ]
-        read_only_fields = ["created_at", ]
+        read_only_fields = ["created_at", "debt",]
         validators = [
             MinValueValidator(0, message='Задолженность не может быть отрицательной.', field="debt")
         ]
