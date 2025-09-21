@@ -11,9 +11,12 @@ class NetworkNodeAdmin(admin.ModelAdmin):
     list_filter = ["contact__city", "node_type"]  # Фильтр по городу
     actions = ["clear_debt"]
 
+    # Поле только для чтения в админке
+    readonly_fields = ('created_at', 'level')
+
     def get_supplier_link(self, obj):
         if obj.supplier:
-            url = reverse("admin:yourapp_networknode_change", args=[obj.supplier.id])
+            url = reverse("admin:electronics_networknode_change", args=[obj.supplier.id])
             return format_html('<a href="{}">{}</a>', url, obj.supplier.name)
         return "Нет поставщика"
 
