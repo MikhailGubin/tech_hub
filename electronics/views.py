@@ -18,6 +18,7 @@ class ProductViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['name', 'model']  # Фильтрация по точному совпадению
     search_fields = ['name', 'model']     # Поиск по частичному совпадению
+    permission_classes = (IsAuthenticated,)
 
 
 class ContactViewSet(ModelViewSet):
@@ -29,6 +30,7 @@ class ContactViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['country', 'city']
     search_fields = ['country', 'city', 'email']
+    permission_classes = (IsAuthenticated,)
 
 
 class NetworkNodeCreateAPIView(CreateAPIView):

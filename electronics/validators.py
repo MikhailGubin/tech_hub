@@ -38,7 +38,7 @@ class ReleaseDateProductValidator:
 
     def __call__(self, value):
         release_date = dict(value).get(self.field)
-        if release_date > timezone.now():
+        if release_date > timezone.now().date():
             raise ValidationError(
                 {"release_date": "Дата выхода продукта на рынок не может быть в будущем."}
             )

@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator
-from django.db import models, transaction
+from django.db import models
 from rest_framework.serializers import ValidationError
+from django.utils import timezone
 
 
 class Contact(models.Model):
@@ -78,6 +79,12 @@ class Product(models.Model):
         blank=True,
         null=True,
     )
+
+    def clean(self):
+        super().clean()
+        if self.release_date:
+            if self.release_date > timezone.now().date():
+                raise ValidationError({'release_date': 'Дата выхода продукта не может быть в будущем.'})
 
     class Meta:
         verbose_name = "Продукт"
