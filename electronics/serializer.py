@@ -61,9 +61,11 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ["created_at", "debt",]
-        validators = [
-            MinValueValidator(0, message='Задолженность не может быть отрицательной.', field="debt")
-        ]
+        extra_kwargs = {
+            'debt_to_supplier': {
+                'validators': [MinValueValidator(0)]
+            }
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
