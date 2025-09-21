@@ -5,7 +5,8 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 
 from electronics.models import Product, Contact, NetworkNode
-from electronics.serializer import ProductSerializer, ContactSerializer, NetworkNodeSerializer
+from electronics.serializer import ProductSerializer, ContactSerializer, NetworkNodeSerializer, \
+    NetworkNodeUpdateSerializer
 
 
 class ProductViewSet(ModelViewSet):
@@ -78,7 +79,7 @@ class NetworkNodeUpdateAPIView(UpdateAPIView):
     """Меняет информацию в представлении объекта класса 'Сетевое звено'"""
 
     queryset = NetworkNode.objects.all()
-    serializer_class = NetworkNodeSerializer
+    serializer_class = NetworkNodeUpdateSerializer
     permission_classes = (IsAuthenticated, )
 
     # @swagger_auto_schema(

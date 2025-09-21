@@ -134,49 +134,28 @@ class NetworkNode(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
 
+    def clean(self):
+        super().clean()
+
+        if self.node_type == self.NodeType.FACTORY and self.supplier is not None:
+            raise ValidationError(
+                {'supplier': 'Завод не может иметь поставщика.'}
+            )
+
+        if self.supplier == self:
+            raise ValidationError({'supplier': 'Объект не может быть поставщиком для самого себя.'})
+
+        if self.supplier is not None:
+            if (self.node_type == self.NodeType.FACTORY and
+                    self.supplier.node_type == self.NodeType.ENTREPRENEUR):
+                raise ValidationError(
+                    {'supplier': 'У розничной сети не может быть поставщиком индивидуальный предприниматель.'}
+                )
+
     class Meta:
         verbose_name = "Сетевое звено"
         verbose_name_plural = "Сетевые звенья"
 
-    def save(self, *args, **kwargs):
-        # Флаг, указывающий, что нужно обновить потомков
-        update_children = False
-        old_level = None
-
-        # Если объект уже существует в БД, получим его старую версию
-        if self.pk:
-            old_obj = NetworkNode.objects.get(pk=self.pk)
-            old_supplier = old_obj.supplier
-            old_level = old_obj.level
-
-            # Проверяем, изменился ли поставщик (а значит, может измениться и уровень)
-            if self.supplier != old_supplier:
-                update_children = True
-
-        # Вычисляем новый уровень
-        if self.supplier is None:
-            self.level = 0
-        else:
-            # Важно: у поставщика уровень уже должен быть вычислен и сохранен!
-            self.level = self.supplier.level + 1
-
-        # Сохраняем объект
-        super().save(*args, **kwargs)
-
-        # Если изменился поставщик и уровень, то обновляем информацию у потомков
-        if update_children and (old_level is not None and self.level != old_level):
-            self.update_children_levels()
-
-    def update_children_levels(self):
-        """Рекурсивно обновляет уровни всех дочерних элементов."""
-        # Используем транзакцию для целостности данных
-        with transaction.atomic():
-            children = self.children.all()
-            for child in children:
-                # Пересчитываем уровень для каждого потомка
-                child.level = self.level + 1
-                child.save()  # Важно: save() потомка также вызовет обновление его детей
-                # Рекурсивный вызов происходит автоматически благодаря методу save()
-
     def __str__(self):
         return f"{self.get_node_type_display()}: {self.name}"
+

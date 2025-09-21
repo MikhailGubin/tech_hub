@@ -60,6 +60,41 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
             "debt",
             "created_at",
         ]
+        read_only_fields = ["created_at",]
+        extra_kwargs = {
+            'debt_to_supplier': {
+                'validators': [MinValueValidator(0)]
+            }
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["supplier"].validators.append(
+            SupplierNetworkNodeValidator(
+            field="supplier",
+            instance=self.instance
+        )
+        )
+
+
+class NetworkNodeUpdateSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели "Сетевое звено" с кастомными валидаторами.
+    """
+
+    class Meta:
+        model = NetworkNode
+
+        fields = [
+            "id",
+            "name",
+            "node_type",
+            "contact",
+            "products",
+            "supplier",
+            "debt",
+            "created_at",
+        ]
         read_only_fields = ["created_at", "debt",]
         extra_kwargs = {
             'debt_to_supplier': {
