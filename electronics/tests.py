@@ -4,11 +4,12 @@ from rest_framework.test import APITestCase
 from django.urls import reverse
 from rest_framework import status
 
-from electronics.models import Contact, Product
+from electronics.models import Contact, Product, NetworkNode
 from users.models import User
 
 
 class ContactTestCase(APITestCase):
+    """ Тесты API для модели 'Contact' """
 
     def setUp(self):
         """Создает базовый набор параметров для тестов для модели "Контакт" """
@@ -101,6 +102,7 @@ class ContactTestCase(APITestCase):
 
 
 class ProductTestCase(APITestCase):
+    """ Тесты API для модели 'Product' """
 
     def setUp(self):
         """Создает базовый набор параметров для тестов для модели "Продукт" """
@@ -117,7 +119,7 @@ class ProductTestCase(APITestCase):
         # Авторизуем пользователя
         self.client.force_authenticate(user=self.user)
 
-        # Создание тестового продукт
+        # Создание тестового продукта
         self.valid_product = Product.objects.create(
             name="Телефон",
             model="Iphone 5",
@@ -186,3 +188,84 @@ class ProductTestCase(APITestCase):
         self.assertIn('detail', response.data)
         self.assertEqual(response.data['detail'], "Authentication credentials were not provided.")
 
+
+class NetworkNodeTestCase(APITestCase):
+    """ Тесты API для модели 'NetworkNode' """
+
+    def setUp(self):
+        """Создает базовый набор параметров для тестов для модели "NetworkNode" """
+        # Создание Пользователя
+        self.user = User.objects.create(
+            email="admin1@example.com",
+            name="Александр",
+            surname="Александров",
+            patronymic="Александрович",
+            password="12345",
+            position="team_leader",
+        )
+        self.user.save()
+        # Авторизуем пользователя
+        self.client.force_authenticate(user=self.user)
+
+        # Создаем контакты
+        self.factory_contact = Contact.objects.create(
+            email="factory@example.com",
+            country="Россия",
+            city="Москва"
+        )
+        self.retail_contact = Contact.objects.create(
+            email="retail@example.com",
+            country="Россия",
+            city="Санкт-Петербург"
+        )
+
+        # Создаем продукты
+        self.product = Product.objects.create(
+            name="Смартфон",
+            model="Galaxy S23",
+            release_date=date(2023, 1, 1)
+        )
+
+        # Создаем завод (уровень 0)
+        self.factory = NetworkNode.objects.create(
+            name="Завод Электроникс",
+            node_type=0,
+            contact=self.factory_contact,
+            debt=0.00,
+        )
+        self.factory.products.add(self.product)
+
+        # Данные для создания розничной сети
+        self.retail_data = {
+            "name": "Розничная сеть Техно",
+            "node_type": 1,
+            "contact": self.retail_contact.id,
+            "supplier": self.factory.id,
+            "debt": 150000.50,
+            "products": [self.product.id]
+        }
+
+    def test_network_node_retrieve(self):
+        """ Проверяет процесс просмотра одного объекта класса "Сетевое звено" """
+
+        url = reverse('electronics:network-node-retrieve', args=[self.factory.pk])
+
+        response = self.client.get(url)
+        data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(data.get("name"), self.factory.name)
+        self.assertEqual(data.get("products"), [self.product.id,])
+
+    def test_create_network_node(self):
+        """ Проверяет процесс создания одного объекта класса "Сетевое звено" """
+        print("Retail data:", self.retail_data)
+        print("Supplier type:", type(self.retail_data['supplier']))
+        print("Supplier value:", self.retail_data['supplier'])
+
+        url = reverse("electronics:network-node-create")
+        response = self.client.post(url, self.retail_data, format="json")
+        if response.status_code != status.HTTP_201_CREATED:
+            print("Error response:", response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(NetworkNode.objects.count(), 2)
+        self.assertEqual(response.data["name"], self.retail_data['name'])

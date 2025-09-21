@@ -7,7 +7,7 @@ from electronics.validators import ReleaseDateProductValidator, SupplierNetworkN
 
 class ContactSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для модели "Контакт".
+    Сериализатор для модели "Контакт" с кастомным валидатором.
     """
 
     class Meta:
@@ -68,19 +68,17 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["created_at",]
         extra_kwargs = {
-            'debt_to_supplier': {
+            'debt': {
                 'validators': [MinValueValidator(0)]
             }
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["supplier"].validators.append(
-            SupplierNetworkNodeValidator(
-            field="supplier",
-            instance=self.instance
-        )
-        )
+    def validate(self, attrs):
+        """Валидация условий для поставщика"""
+
+        attrs = super().validate(attrs)
+        validator = SupplierNetworkNodeValidator(instance=self.instance)
+        return validator(attrs)
 
 
 class NetworkNodeUpdateSerializer(serializers.ModelSerializer):
@@ -102,17 +100,11 @@ class NetworkNodeUpdateSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ["created_at", "debt",]
-        extra_kwargs = {
-            'debt_to_supplier': {
-                'validators': [MinValueValidator(0)]
-            }
-        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["supplier"].validators.append(
-            SupplierNetworkNodeValidator(
-            field="supplier",
-            instance=self.instance
-        )
-        )
+
+    def validate(self, attrs):
+        """Валидация условий для поставщика"""
+
+        attrs = super().validate(attrs)
+        validator = SupplierNetworkNodeValidator(instance=self.instance)
+        return validator(attrs)
