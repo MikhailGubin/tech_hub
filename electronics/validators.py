@@ -54,38 +54,59 @@ class SupplierNetworkNodeValidator:
         node_type = attrs.get('node_type')
         supplier = attrs.get('supplier')
 
-        print(f"Validator: node_type={node_type}, supplier={supplier}, type={type(supplier)}")
 
-        # Если supplier не передан
-        if supplier is None:
-            if node_type != NetworkNode.NodeType.FACTORY:
-                raise ValidationError({
-                    'supplier': 'Объект без поставщика может быть только Заводом.'
-                })
-            return attrs
-
-        # Если supplier это ID (число), преобразуем в объект для проверок
-        if isinstance(supplier, int):
-            try:
-                supplier_obj = NetworkNode.objects.get(id=supplier)
-            except NetworkNode.DoesNotExist:
-                raise ValidationError({'supplier': 'Указанный поставщик не существует.'})
+        if self.instance is None:
+            self._validate_create(attrs, node_type, supplier)
         else:
-            # Если это уже объект, используем его
+            self._validate_update(attrs, node_type, supplier)
+
+        return attrs
+
+    def _validate_create(self, attrs, node_type, supplier):
+        """Валидация при создании"""
+        if supplier is None and node_type != NetworkNode.NodeType.FACTORY:
+            raise ValidationError({
+                'supplier': 'Объект без поставщика может быть только Заводом.'
+            })
+
+        if supplier is not None and node_type is not None:
+            self._validate_supplier_hierarchy(supplier, node_type)
+
+    def _validate_update(self, attrs, node_type, supplier):
+        """Валидация при обновлении"""
+        # Если оба поля не переданы - ничего не проверяем
+        if node_type is None and supplier is None:
+            return
+
+        # Определяем текущие значения
+        current_node_type = node_type if node_type is not None else self.instance.node_type
+        current_supplier = supplier if supplier is not None else self.instance.supplier
+
+        # Проверяем только если оба значения известны
+        if current_supplier is None and current_node_type != NetworkNode.NodeType.FACTORY:
+            raise ValidationError({
+                'supplier': 'Объект без поставщика может быть только Заводом.'
+            })
+
+        if current_supplier is not None:
+            self._validate_supplier_hierarchy(current_supplier, current_node_type)
+
+    def _validate_supplier_hierarchy(self, supplier, node_type):
+        """Общие проверки иерархии"""
+        if isinstance(supplier, int):
+            supplier_obj = NetworkNode.objects.get(id=supplier)
+        else:
             supplier_obj = supplier
 
-        # Проверка: Завод не может иметь поставщика
         if node_type == NetworkNode.NodeType.FACTORY:
             raise ValidationError({'supplier': 'Завод не может иметь поставщика.'})
 
-        # Проверка: Нельзя быть поставщиком для самого себя
         if self.instance and supplier_obj.id == self.instance.id:
             raise ValidationError({'supplier': 'Объект не может быть поставщиком для самого себя.'})
 
-        # Проверка: Розничная сеть не может иметь поставщиком ИП
         if node_type == NetworkNode.NodeType.RETAIL and supplier_obj.node_type == NetworkNode.NodeType.ENTREPRENEUR:
             raise ValidationError({
                 'supplier': 'У розничной сети не может быть поставщиком индивидуальный предприниматель.'
             })
 
-        return attrs
+

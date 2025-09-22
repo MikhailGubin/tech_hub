@@ -235,15 +235,25 @@ class NetworkNodeTestCase(APITestCase):
         )
         self.factory.products.add(self.product)
 
+        # Создаем розничную сеть (уровень 1)
+        self.retail = NetworkNode.objects.create(
+            name="Розничная сеть Техно",
+            node_type=1,
+            contact=self.retail_contact,
+            debt=150000.50,
+        )
+        self.retail.products.add(self.product)
+
         # Данные для создания розничной сети
         self.retail_data = {
-            "name": "Розничная сеть Техно",
+            "name": "Розничная сеть СитиЛинк",
             "node_type": 1,
             "contact": self.retail_contact.id,
             "supplier": self.factory.id,
-            "debt": 150000.50,
+            "debt": 10000.10,
             "products": [self.product.id]
         }
+        self.url_create = reverse("electronics:network-node-create")
 
     def test_network_node_retrieve(self):
         """ Проверяет процесс просмотра одного объекта класса "Сетевое звено" """
@@ -258,14 +268,93 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_create_network_node(self):
         """ Проверяет процесс создания одного объекта класса "Сетевое звено" """
-        print("Retail data:", self.retail_data)
-        print("Supplier type:", type(self.retail_data['supplier']))
-        print("Supplier value:", self.retail_data['supplier'])
 
-        url = reverse("electronics:network-node-create")
-        response = self.client.post(url, self.retail_data, format="json")
-        if response.status_code != status.HTTP_201_CREATED:
-            print("Error response:", response.data)
+        response = self.client.post(self.url_create, self.retail_data, format="json")
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(NetworkNode.objects.count(), 2)
+        self.assertEqual(NetworkNode.objects.count(), 3)
         self.assertEqual(response.data["name"], self.retail_data['name'])
+
+    def test_network_node_update(self):
+        """ Проверяет процесс редактирования одного объекта класса "Сетевое звено" """
+
+        url = reverse('electronics:network-node-update', args=[self.factory.pk])
+        update_data = {"name": "Обновленный завод"}
+
+        response = self.client.patch(url, update_data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.factory.refresh_from_db()
+        self.assertEqual(self.factory.name, "Обновленный завод")
+
+    def test_delete_network_node(self):
+        """ Проверяет процесс удаления одного объекта класса "Сетевое звено" """
+
+        url = reverse('electronics:network-node-delete', args=[self.factory.pk])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(NetworkNode.objects.count(), 1)
+
+    def test_cannot_update_debt_via_api(self):
+        """ Проверяет, что нельзя обновить задолженность через API"""
+
+        url_detail = reverse("electronics:network-node-update", args=[self.retail.pk])
+
+        # Пытаемся обновить задолженность
+        update_data = {"debt": 999999.99}
+        response = self.client.patch(url_detail, update_data, format="json")
+
+        # Проверяем, что задолженность НЕ изменилась
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(response.data["debt"], 999999.99)
+        self.assertEqual(response.data["debt"], "150000.50")
+
+    def test_factory_cannot_have_supplier(self):
+        """ Проверяет, что завод не может иметь поставщика"""
+        factory_data = {
+            "name": "Неверный завод",
+            "node_type": 0,
+            "contact": self.factory_contact.id,
+            "products": [self.product.id],
+            "supplier": self.retail.id,  # Завод не должен иметь поставщика!
+            "debt": 0.00
+        }
+
+        response = self.client.post(self.url_create, factory_data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("supplier", response.data)
+        self.assertIn("Завод не может иметь поставщика.", response.data['supplier'])
+
+    def test_hierarchy_validation(self):
+        """Проверяет, что у розничной сети не может быть поставщиком индивидуальный предприниматель """
+
+        # Создаем ИП с поставщиком-розничной сетью
+        entrepreneur_contact = Contact.objects.create(
+            email="entrepreneur@example.com",
+            country="Россия",
+            city="Казань"
+        )
+
+        entrepreneur_data = {
+            "name": "ИП Петров",
+            "node_type": 2,  # ИП
+            "contact": entrepreneur_contact.id,
+            "supplier": self.retail.id,
+            "products": [self.product.id],
+            "debt": 50000.00
+        }
+
+        response = self.client.post(self.url_create, entrepreneur_data, format="json")
+        print(response.json())
+        entrepreneur_id = response.data["id"]
+
+        # Пытаюсь создать розничную сеть с поставщиком - ИП
+        self.retail_data["supplier"] = entrepreneur_id
+
+        response = self.client.post(self.url_create, self.retail_data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("supplier", response.data)
+        self.assertIn(
+        "У розничной сети не может быть поставщиком индивидуальный предприниматель.",
+                response.data['supplier']
+        )
