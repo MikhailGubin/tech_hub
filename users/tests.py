@@ -112,7 +112,7 @@ class UserDeleteAuthTestCase(APITestCase):
 
         response = self.client.delete(self.url)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.json()["detail"], "Authentication credentials were not provided.")
 
     def test_regular_user_cannot_delete_user(self):

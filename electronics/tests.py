@@ -1,4 +1,6 @@
-from datetime import date, datetime
+from datetime import date
+from rest_framework_simplejwt.tokens import AccessToken
+
 
 from rest_framework.test import APITestCase
 from django.urls import reverse
@@ -96,7 +98,7 @@ class ContactTestCase(APITestCase):
         url = reverse("electronics:contact-list")
         response = self.client.post(url, self.contact_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertIn('detail', response.data)
         self.assertEqual(response.data['detail'], "Authentication credentials were not provided.")
 
@@ -184,7 +186,7 @@ class ProductTestCase(APITestCase):
         url = reverse("electronics:product-list")
         response = self.client.post(url, self.product_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertIn('detail', response.data)
         self.assertEqual(response.data['detail'], "Authentication credentials were not provided.")
 
@@ -202,10 +204,11 @@ class NetworkNodeTestCase(APITestCase):
             patronymic="Александрович",
             password="12345",
             position="team_leader",
+            is_staff=True
         )
         self.user.save()
-        # Авторизуем пользователя
-        self.client.force_authenticate(user=self.user)
+
+        self.valid_token = AccessToken.for_user(self.user)
 
         # Создаем контакты
         self.factory_contact = Contact.objects.create(
@@ -257,6 +260,7 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_network_node_retrieve(self):
         """ Проверяет процесс просмотра одного объекта класса "Сетевое звено" """
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         url = reverse('electronics:network-node-retrieve', args=[self.factory.pk])
 
@@ -268,6 +272,7 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_create_network_node(self):
         """ Проверяет процесс создания одного объекта класса "Сетевое звено" """
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         response = self.client.post(self.url_create, self.retail_data, format="json")
 
@@ -277,6 +282,7 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_network_node_update(self):
         """ Проверяет процесс редактирования одного объекта класса "Сетевое звено" """
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         url = reverse('electronics:network-node-update', args=[self.factory.pk])
         update_data = {"name": "Обновленный завод"}
@@ -289,6 +295,7 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_delete_network_node(self):
         """ Проверяет процесс удаления одного объекта класса "Сетевое звено" """
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         url = reverse('electronics:network-node-delete', args=[self.factory.pk])
         response = self.client.delete(url)
@@ -297,6 +304,7 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_cannot_update_debt_via_api(self):
         """ Проверяет, что нельзя обновить задолженность через API"""
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         url_detail = reverse("electronics:network-node-update", args=[self.retail.pk])
 
@@ -311,6 +319,8 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_factory_cannot_have_supplier(self):
         """ Проверяет, что завод не может иметь поставщика"""
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
+
         factory_data = {
             "name": "Неверный завод",
             "node_type": 0,
@@ -327,6 +337,7 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_hierarchy_validation(self):
         """Проверяет, что у розничной сети не может быть поставщиком индивидуальный предприниматель """
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         # Создаем ИП с поставщиком-розничной сетью
         entrepreneur_contact = Contact.objects.create(
@@ -345,7 +356,6 @@ class NetworkNodeTestCase(APITestCase):
         }
 
         response = self.client.post(self.url_create, entrepreneur_data, format="json")
-        print(response.json())
         entrepreneur_id = response.data["id"]
 
         # Пытаюсь создать розничную сеть с поставщиком - ИП
@@ -358,3 +368,15 @@ class NetworkNodeTestCase(APITestCase):
         "У розничной сети не может быть поставщиком индивидуальный предприниматель.",
                 response.data['supplier']
         )
+
+    def test_network_node_creation_with_invalid_jwt_token(self):
+        """Проверка с невалидным JWT токеном"""
+        # Повреждаем токен
+        invalid_token = "invalid"
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {invalid_token}")
+
+        response = self.client.post(self.url_create, self.retail_data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('detail', response.data)
+        self.assertIn('Given token not valid for any token type', response.data['detail'])
