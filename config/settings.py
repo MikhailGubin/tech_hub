@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     "users",
     "electronics",
     'django_filters',
+    "rest_framework",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -119,4 +121,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
-
+SWAGGER_SETTINGS = {
+    "USE_SESSION_AUTH": False,
+    "SECURITY_DEFINITIONS": {
+        "Basic": {"type": "basic"},
+        "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"},
+    },
+    "APIS_SORTER": "alpha",
+    "OPERATIONS_SORTER": "alpha",
+    "DOC_EXPANSION": "none",
+    "DEFAULT_INFO": "config.urls.swagger_info",
+}
