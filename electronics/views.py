@@ -41,7 +41,7 @@ class NetworkNodeCreateAPIView(CreateAPIView):
     serializer_class = NetworkNodeSerializer
     permission_classes = (IsAuthenticated, )
 
-    @swagger_auto_schema(operation_id="task_create", operation_summary="Создание нового задания")
+    @swagger_auto_schema(operation_id="task_create", operation_summary="Создание нового сетевого звена")
     def post(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
@@ -105,6 +105,6 @@ class NetworkNodeDestroyAPIView(DestroyAPIView):
     serializer_class = NetworkNodeSerializer
     permission_classes = (IsAuthenticated, )
 
-    @swagger_auto_schema(operation_id="task_delete", operation_summary="Удаление задачи")
+    @swagger_auto_schema(operation_id="task_delete", operation_summary="Удаление сетевого звена")
     def delete(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
