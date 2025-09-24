@@ -68,8 +68,20 @@ class ContactTestCase(APITestCase):
         self.assertEqual(created_contact.city, self.contact_data["city"])
         self.assertEqual(created_contact.house_number, self.contact_data["house_number"])
 
+    def test_list_contacts(self):
+        """Проверяет получение списка контактов."""
+        # Создаю ещё один контакт
+        url = reverse("electronics:contact-list")
+        self.client.post(url, self.contact_data, format="json")
+
+        url = reverse("electronics:contact-list")
+        response = self.client.get(url)
+        data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(data["results"]), 2)
+
     def test_delete_contact_success(self):
-        """Проверяет успешное удаление контакта."""
+        """Проверяет процесс удаления одного объекта класса "Контакт"."""
 
         url = reverse("electronics:contact-detail", kwargs={"pk": self.valid_contact.pk})
 
@@ -156,8 +168,20 @@ class ProductTestCase(APITestCase):
         self.assertEqual(created_product.model, self.product_data["model"])
         self.assertEqual(created_product.release_date, date(2024, 12, 1))
 
-    def test_delete_product_success(self):
-        """Проверяет успешное удаление продукта."""
+    def test_list_contacts(self):
+        """Проверяет получение списка продуктов."""
+        # Создаю ещё один продукт
+        url = reverse("electronics:product-list")
+        self.client.post(url, self.product_data, format="json")
+
+        url = reverse("electronics:product-list")
+        response = self.client.get(url)
+        data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(data["results"]), 2)
+
+    def test_delete_product(self):
+        """Проверяет процесс создания одного объекта класса "Продукт"."""
 
         url = reverse("electronics:product-detail", kwargs={"pk": self.valid_product.pk})
 
@@ -209,6 +233,7 @@ class NetworkNodeTestCase(APITestCase):
         self.user.save()
 
         self.valid_token = AccessToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         # Создаем контакты
         self.factory_contact = Contact.objects.create(
@@ -260,7 +285,6 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_network_node_retrieve(self):
         """ Проверяет процесс просмотра одного объекта класса "Сетевое звено" """
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         url = reverse('electronics:network-node-retrieve', args=[self.factory.pk])
 
@@ -272,7 +296,6 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_create_network_node(self):
         """ Проверяет процесс создания одного объекта класса "Сетевое звено" """
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         response = self.client.post(self.url_create, self.retail_data, format="json")
 
@@ -280,9 +303,20 @@ class NetworkNodeTestCase(APITestCase):
         self.assertEqual(NetworkNode.objects.count(), 3)
         self.assertEqual(response.data["name"], self.retail_data['name'])
 
+    def test_list_contacts(self):
+        """Проверяет получение списка продуктов."""
+        # Создаю ещё одно сетевое звено
+        url = reverse("electronics:network-node-create")
+        self.client.post(url, self.retail_data, format="json")
+
+        url = reverse("electronics:network-nodes-list")
+        response = self.client.get(url)
+        data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(data["results"]), 3)
+
     def test_network_node_update(self):
         """ Проверяет процесс редактирования одного объекта класса "Сетевое звено" """
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         url = reverse('electronics:network-node-update', args=[self.factory.pk])
         update_data = {"name": "Обновленный завод"}
@@ -295,7 +329,6 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_delete_network_node(self):
         """ Проверяет процесс удаления одного объекта класса "Сетевое звено" """
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         url = reverse('electronics:network-node-delete', args=[self.factory.pk])
         response = self.client.delete(url)
@@ -304,7 +337,6 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_cannot_update_debt_via_api(self):
         """ Проверяет, что нельзя обновить задолженность через API"""
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         url_detail = reverse("electronics:network-node-update", args=[self.retail.pk])
 
@@ -319,7 +351,6 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_factory_cannot_have_supplier(self):
         """ Проверяет, что завод не может иметь поставщика"""
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         factory_data = {
             "name": "Неверный завод",
@@ -337,8 +368,6 @@ class NetworkNodeTestCase(APITestCase):
 
     def test_hierarchy_validation(self):
         """Проверяет, что у розничной сети не может быть поставщиком индивидуальный предприниматель """
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
-
         # Создаем ИП с поставщиком-розничной сетью
         entrepreneur_contact = Contact.objects.create(
             email="entrepreneur@example.com",

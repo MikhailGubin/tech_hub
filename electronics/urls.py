@@ -12,7 +12,7 @@ router.register(r'contacts', ContactViewSet, basename='contact')
 
 
 urlpatterns = [
-    path("", NetworkNodeListAPIView.as_view(), name="network_nodes"),
+    path("", NetworkNodeListAPIView.as_view(), name="network-nodes-list"),
     path("<int:pk>/", NetworkNodeRetrieveAPIView.as_view(), name="network-node-retrieve"),
     path("create/", NetworkNodeCreateAPIView.as_view(), name="network-node-create"),
     path("<int:pk>/delete/", NetworkNodeDestroyAPIView.as_view(), name="network-node-delete"),

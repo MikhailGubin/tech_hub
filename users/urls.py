@@ -7,7 +7,7 @@ from users.views import (
     UserDestroyAPIView,
     UserListAPIView,
     UserRetrieveAPIView,
-    UserUpdateAPIView,
+    UserUpdateAPIView, CustomTokenObtainPairView, CustomTokenRefreshView,
 )
 
 app_name = UsersConfig.name
@@ -18,6 +18,6 @@ urlpatterns = [
     path("<int:pk>/", UserRetrieveAPIView.as_view(), name="user-retrieve"),
     path("<int:pk>/delete/", UserDestroyAPIView.as_view(), name="user-delete"),
     path("<int:pk>/update/", UserUpdateAPIView.as_view(), name="user-update"),
-    # path("login/", CustomTokenObtainPairView.as_view(permission_classes=(AllowAny,)), name="login"),
-    # path("token/refresh/", CustomTokenRefreshView.as_view(permission_classes=(AllowAny,)), name="token-refresh"),
+    path("login/", CustomTokenObtainPairView.as_view(permission_classes=(AllowAny,)), name="login"),
+    path("token/refresh/", CustomTokenRefreshView.as_view(permission_classes=(AllowAny,)), name="token-refresh"),
 ]

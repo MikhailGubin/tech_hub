@@ -6,6 +6,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 
 from electronics.models import Product, Contact, NetworkNode
+from electronics.pagination import ProductsPagination, ContactsPagination, NetworkNodesPagination
 from electronics.serializer import ProductSerializer, ContactSerializer, NetworkNodeSerializer, \
     NetworkNodeUpdateSerializer
 
@@ -20,6 +21,7 @@ class ProductViewSet(ModelViewSet):
     filterset_fields = ['name', 'model']  # Фильтрация по точному совпадению
     search_fields = ['name', 'model']     # Поиск по частичному совпадению
     permission_classes = (IsAuthenticated,)
+    pagination_class = ProductsPagination
 
 
 class ContactViewSet(ModelViewSet):
@@ -32,6 +34,7 @@ class ContactViewSet(ModelViewSet):
     filterset_fields = ['country', 'city']
     search_fields = ['country', 'city', 'email']
     permission_classes = (IsAuthenticated,)
+    pagination_class = ContactsPagination
 
 
 class NetworkNodeCreateAPIView(CreateAPIView):
@@ -52,7 +55,7 @@ class NetworkNodeListAPIView(ListAPIView):
     queryset = NetworkNode.objects.all()
     serializer_class = NetworkNodeSerializer
     permission_classes = (IsAuthenticated,)
-    # pagination_class = NetworkNodesPagination
+    pagination_class = NetworkNodesPagination
 
     @swagger_auto_schema(
         operation_id="owners",
