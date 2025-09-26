@@ -19,7 +19,7 @@ class IndexList(APIView):
     template_name = 'index.html'
 
     def get(self, request):
-        text = "Добро пожаловать в онлайн платформу-торговой сети электроники TechHub"
+        text = "Добро пожаловать в онлайн платформу торговой сети электроники TechHub"
         return Response({'text': text})
 
 
