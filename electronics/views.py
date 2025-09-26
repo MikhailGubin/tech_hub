@@ -4,11 +4,23 @@ from rest_framework import filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.response import Response
 
 from electronics.models import Product, Contact, NetworkNode
 from electronics.pagination import ProductsPagination, ContactsPagination, NetworkNodesPagination
 from electronics.serializer import ProductSerializer, ContactSerializer, NetworkNodeSerializer, \
     NetworkNodeUpdateSerializer
+from rest_framework.renderers import TemplateHTMLRenderer
+from rest_framework.views import APIView
+
+
+class IndexList(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'index.html'
+
+    def get(self, request):
+        text = "Добро пожаловать в онлайн платформу-торговой сети электроники TechHub"
+        return Response({'text': text})
 
 
 class ProductViewSet(ModelViewSet):

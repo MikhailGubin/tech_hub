@@ -15,11 +15,13 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else []
+ALLOWED_HOSTS = []
 
-# Если DEBUG=False и ALLOWED_HOSTS пустой, установите значения по умолчанию
-if not DEBUG and not ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else []
+#
+# # Если DEBUG=False и ALLOWED_HOSTS пустой, установите значения по умолчанию
+# if not DEBUG and not ALLOWED_HOSTS:
+#     ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     "django.contrib.admin",

@@ -5,6 +5,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from django.conf.urls.static import static
 from config import settings
+from electronics.views import IndexList
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -21,6 +22,7 @@ schema_view = get_schema_view(
 
 
 urlpatterns = [
+    path("", IndexList.as_view(), name="index"),
     path("admin/", admin.site.urls),
     path("users/", include("users.urls", namespace="users")),
     path("electronics/", include("electronics.urls", namespace="electronics")),
