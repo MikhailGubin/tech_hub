@@ -3,11 +3,13 @@ from rest_framework.permissions import AllowAny
 
 from users.apps import UsersConfig
 from users.views import (
+    CustomTokenObtainPairView,
+    CustomTokenRefreshView,
     UserCreateAPIView,
     UserDestroyAPIView,
     UserListAPIView,
     UserRetrieveAPIView,
-    UserUpdateAPIView, CustomTokenObtainPairView, CustomTokenRefreshView,
+    UserUpdateAPIView
 )
 
 app_name = UsersConfig.name

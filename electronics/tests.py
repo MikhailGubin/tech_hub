@@ -1,17 +1,16 @@
 from datetime import date
-from rest_framework_simplejwt.tokens import AccessToken
 
-
-from rest_framework.test import APITestCase
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import AccessToken
 
-from electronics.models import Contact, Product, NetworkNode
+from electronics.models import Contact, NetworkNode, Product
 from users.models import User
 
 
 class ContactTestCase(APITestCase):
-    """ Тесты API для модели 'Contact' """
+    """Тесты API для модели 'Contact'"""
 
     def setUp(self):
         """Создает базовый набор параметров для тестов для модели "Контакт" """
@@ -31,11 +30,7 @@ class ContactTestCase(APITestCase):
 
         # Создание тестового контакта
         self.valid_contact = Contact.objects.create(
-            email="test@example.com",
-            country="Россия",
-            city="Москва",
-            street="Тверская",
-            house_number="10А"
+            email="test@example.com", country="Россия", city="Москва", street="Тверская", house_number="10А"
         )
         self.contact_data = {
             "email": "test2@example.com",
@@ -48,7 +43,7 @@ class ContactTestCase(APITestCase):
     def test_contact_retrieve(self):
         """Проверяет процесс просмотра одного объекта класса "Контакт" """
 
-        url = reverse('electronics:contact-detail', args=[self.valid_contact.pk])
+        url = reverse("electronics:contact-detail", args=[self.valid_contact.pk])
 
         response = self.client.get(url)
         data = response.json()
@@ -92,31 +87,28 @@ class ContactTestCase(APITestCase):
         self.assertFalse(Contact.objects.filter(id=self.valid_contact.pk).exists())
 
     def test_contact_error_no_city(self):
-        """Проверяет, что нельзя создать контакт с улицей и домом без указания города """
-        self.contact_data['city'] = ''
+        """Проверяет, что нельзя создать контакт с улицей и домом без указания города"""
+        self.contact_data["city"] = ""
         url = reverse("electronics:contact-list")
         response = self.client.post(url, self.contact_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('city', response.data)
-        self.assertEqual(
-            response.data['city'][0],
-            'Если указан номер дома, необходимо указать и город.'
-        )
+        self.assertIn("city", response.data)
+        self.assertEqual(response.data["city"][0], "Если указан номер дома, необходимо указать и город.")
 
     def test_contact_authentication_error(self):
-        """Проверяем сообщение об ошибке аутентификации """
+        """Проверяем сообщение об ошибке аутентификации"""
         self.client.force_authenticate(user=None)
         url = reverse("electronics:contact-list")
         response = self.client.post(url, self.contact_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertIn('detail', response.data)
-        self.assertEqual(response.data['detail'], "Authentication credentials were not provided.")
+        self.assertIn("detail", response.data)
+        self.assertEqual(response.data["detail"], "Authentication credentials were not provided.")
 
 
 class ProductTestCase(APITestCase):
-    """ Тесты API для модели 'Product' """
+    """Тесты API для модели 'Product'"""
 
     def setUp(self):
         """Создает базовый набор параметров для тестов для модели "Продукт" """
@@ -134,27 +126,19 @@ class ProductTestCase(APITestCase):
         self.client.force_authenticate(user=self.user)
 
         # Создание тестового продукта
-        self.valid_product = Product.objects.create(
-            name="Телефон",
-            model="Iphone 5",
-            release_date=date(2025, 1, 1)
-        )
-        self.product_data = {
-            "name": "Телевизор",
-            "model": "OLED55",
-            "release_date": date(2024, 12, 1)
-        }
+        self.valid_product = Product.objects.create(name="Телефон", model="Iphone 5", release_date=date(2025, 1, 1))
+        self.product_data = {"name": "Телевизор", "model": "OLED55", "release_date": date(2024, 12, 1)}
 
     def test_product_retrieve(self):
         """Проверяет процесс просмотра одного объекта класса "Продукт" """
 
-        url = reverse('electronics:product-detail', args=[self.valid_product.pk])
+        url = reverse("electronics:product-detail", args=[self.valid_product.pk])
 
         response = self.client.get(url)
         data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(data.get("name"), self.valid_product.name)
-        self.assertEqual(data.get("release_date"), '2025-01-01')
+        self.assertEqual(data.get("release_date"), "2025-01-01")
 
     def test_product_create(self):
         """Проверяет процесс создания одного объекта класса "Продукт" """
@@ -192,31 +176,28 @@ class ProductTestCase(APITestCase):
         self.assertFalse(Product.objects.filter(id=self.valid_product.pk).exists())
 
     def test_product_error_no_city(self):
-        """Проверяет, что нельзя создать продукт с датой выхода на рынок в будущем """
-        self.product_data['release_date'] = date(2034, 12, 1)
+        """Проверяет, что нельзя создать продукт с датой выхода на рынок в будущем"""
+        self.product_data["release_date"] = date(2034, 12, 1)
         url = reverse("electronics:product-list")
         response = self.client.post(url, self.product_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('release_date', response.data)
-        self.assertEqual(
-            response.data['release_date'][0],
-            'Дата выхода продукта на рынок не может быть в будущем.'
-        )
+        self.assertIn("release_date", response.data)
+        self.assertEqual(response.data["release_date"][0], "Дата выхода продукта на рынок не может быть в будущем.")
 
     def test_product_authentication_error(self):
-        """Проверяем сообщение об ошибке аутентификации """
+        """Проверяем сообщение об ошибке аутентификации"""
         self.client.force_authenticate(user=None)
         url = reverse("electronics:product-list")
         response = self.client.post(url, self.product_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertIn('detail', response.data)
-        self.assertEqual(response.data['detail'], "Authentication credentials were not provided.")
+        self.assertIn("detail", response.data)
+        self.assertEqual(response.data["detail"], "Authentication credentials were not provided.")
 
 
 class NetworkNodeTestCase(APITestCase):
-    """ Тесты API для модели 'NetworkNode' """
+    """Тесты API для модели 'NetworkNode'"""
 
     def setUp(self):
         """Создает базовый набор параметров для тестов для модели "NetworkNode" """
@@ -228,7 +209,7 @@ class NetworkNodeTestCase(APITestCase):
             patronymic="Александрович",
             password="12345",
             position="team_leader",
-            is_staff=True
+            is_staff=True,
         )
         self.user.save()
 
@@ -236,23 +217,13 @@ class NetworkNodeTestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.valid_token}")
 
         # Создаем контакты
-        self.factory_contact = Contact.objects.create(
-            email="factory@example.com",
-            country="Россия",
-            city="Москва"
-        )
+        self.factory_contact = Contact.objects.create(email="factory@example.com", country="Россия", city="Москва")
         self.retail_contact = Contact.objects.create(
-            email="retail@example.com",
-            country="Россия",
-            city="Санкт-Петербург"
+            email="retail@example.com", country="Россия", city="Санкт-Петербург"
         )
 
         # Создаем продукты
-        self.product = Product.objects.create(
-            name="Смартфон",
-            model="Galaxy S23",
-            release_date=date(2023, 1, 1)
-        )
+        self.product = Product.objects.create(name="Смартфон", model="Galaxy S23", release_date=date(2023, 1, 1))
 
         # Создаем завод (уровень 0)
         self.factory = NetworkNode.objects.create(
@@ -279,29 +250,34 @@ class NetworkNodeTestCase(APITestCase):
             "contact": self.retail_contact.id,
             "supplier": self.factory.id,
             "debt": 10000.10,
-            "products": [self.product.id]
+            "products": [self.product.id],
         }
         self.url_create = reverse("electronics:network-node-create")
 
     def test_network_node_retrieve(self):
-        """ Проверяет процесс просмотра одного объекта класса "Сетевое звено" """
+        """Проверяет процесс просмотра одного объекта класса "Сетевое звено" """
 
-        url = reverse('electronics:network-node-retrieve', args=[self.factory.pk])
+        url = reverse("electronics:network-node-retrieve", args=[self.factory.pk])
 
         response = self.client.get(url)
         data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(data.get("name"), self.factory.name)
-        self.assertEqual(data.get("products"), [self.product.id,])
+        self.assertEqual(
+            data.get("products"),
+            [
+                self.product.id,
+            ],
+        )
 
     def test_create_network_node(self):
-        """ Проверяет процесс создания одного объекта класса "Сетевое звено" """
+        """Проверяет процесс создания одного объекта класса "Сетевое звено" """
 
         response = self.client.post(self.url_create, self.retail_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(NetworkNode.objects.count(), 3)
-        self.assertEqual(response.data["name"], self.retail_data['name'])
+        self.assertEqual(response.data["name"], self.retail_data["name"])
 
     def test_list_contacts(self):
         """Проверяет получение списка продуктов."""
@@ -316,9 +292,9 @@ class NetworkNodeTestCase(APITestCase):
         self.assertEqual(len(data["results"]), 3)
 
     def test_network_node_update(self):
-        """ Проверяет процесс редактирования одного объекта класса "Сетевое звено" """
+        """Проверяет процесс редактирования одного объекта класса "Сетевое звено" """
 
-        url = reverse('electronics:network-node-update', args=[self.factory.pk])
+        url = reverse("electronics:network-node-update", args=[self.factory.pk])
         update_data = {"name": "Обновленный завод"}
 
         response = self.client.patch(url, update_data, format="json")
@@ -328,15 +304,15 @@ class NetworkNodeTestCase(APITestCase):
         self.assertEqual(self.factory.name, "Обновленный завод")
 
     def test_delete_network_node(self):
-        """ Проверяет процесс удаления одного объекта класса "Сетевое звено" """
+        """Проверяет процесс удаления одного объекта класса "Сетевое звено" """
 
-        url = reverse('electronics:network-node-delete', args=[self.factory.pk])
+        url = reverse("electronics:network-node-delete", args=[self.factory.pk])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(NetworkNode.objects.count(), 1)
 
     def test_cannot_update_debt_via_api(self):
-        """ Проверяет, что нельзя обновить задолженность через API"""
+        """Проверяет, что нельзя обновить задолженность через API"""
 
         url_detail = reverse("electronics:network-node-update", args=[self.retail.pk])
 
@@ -350,7 +326,7 @@ class NetworkNodeTestCase(APITestCase):
         self.assertEqual(response.data["debt"], "150000.50")
 
     def test_factory_cannot_have_supplier(self):
-        """ Проверяет, что завод не может иметь поставщика"""
+        """Проверяет, что завод не может иметь поставщика"""
 
         factory_data = {
             "name": "Неверный завод",
@@ -358,21 +334,19 @@ class NetworkNodeTestCase(APITestCase):
             "contact": self.factory_contact.id,
             "products": [self.product.id],
             "supplier": self.retail.id,  # Завод не должен иметь поставщика!
-            "debt": 0.00
+            "debt": 0.00,
         }
 
         response = self.client.post(self.url_create, factory_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("supplier", response.data)
-        self.assertIn("Завод не может иметь поставщика.", response.data['supplier'])
+        self.assertIn("Завод не может иметь поставщика.", response.data["supplier"])
 
     def test_hierarchy_validation(self):
-        """Проверяет, что у розничной сети не может быть поставщиком индивидуальный предприниматель """
+        """Проверяет, что у розничной сети не может быть поставщиком индивидуальный предприниматель"""
         # Создаем ИП с поставщиком-розничной сетью
         entrepreneur_contact = Contact.objects.create(
-            email="entrepreneur@example.com",
-            country="Россия",
-            city="Казань"
+            email="entrepreneur@example.com", country="Россия", city="Казань"
         )
 
         entrepreneur_data = {
@@ -381,7 +355,7 @@ class NetworkNodeTestCase(APITestCase):
             "contact": entrepreneur_contact.id,
             "supplier": self.retail.id,
             "products": [self.product.id],
-            "debt": 50000.00
+            "debt": 50000.00,
         }
 
         response = self.client.post(self.url_create, entrepreneur_data, format="json")
@@ -394,8 +368,7 @@ class NetworkNodeTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("supplier", response.data)
         self.assertIn(
-        "У розничной сети не может быть поставщиком индивидуальный предприниматель.",
-                response.data['supplier']
+            "У розничной сети не может быть поставщиком индивидуальный предприниматель.", response.data["supplier"]
         )
 
     def test_network_node_creation_with_invalid_jwt_token(self):
@@ -407,5 +380,5 @@ class NetworkNodeTestCase(APITestCase):
         response = self.client.post(self.url_create, self.retail_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertIn('detail', response.data)
-        self.assertIn('Given token not valid for any token type', response.data['detail'])
+        self.assertIn("detail", response.data)
+        self.assertIn("Given token not valid for any token type", response.data["detail"])

@@ -1,14 +1,23 @@
-from electronics.apps import ElectronicsConfig
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from .views import ProductViewSet, ContactViewSet, NetworkNodeListAPIView, NetworkNodeRetrieveAPIView, \
-    NetworkNodeCreateAPIView, NetworkNodeDestroyAPIView, NetworkNodeUpdateAPIView
+
+from electronics.apps import ElectronicsConfig
+
+from .views import (
+    ContactViewSet,
+    NetworkNodeCreateAPIView,
+    NetworkNodeDestroyAPIView,
+    NetworkNodeListAPIView,
+    NetworkNodeRetrieveAPIView,
+    NetworkNodeUpdateAPIView,
+    ProductViewSet
+)
 
 app_name = ElectronicsConfig.name
 
 router = DefaultRouter()
-router.register(r'products', ProductViewSet, basename='product')
-router.register(r'contacts', ContactViewSet, basename='contact')
+router.register(r"products", ProductViewSet, basename="product")
+router.register(r"contacts", ContactViewSet, basename="contact")
 
 
 urlpatterns = [
@@ -17,5 +26,5 @@ urlpatterns = [
     path("create/", NetworkNodeCreateAPIView.as_view(), name="network-node-create"),
     path("<int:pk>/delete/", NetworkNodeDestroyAPIView.as_view(), name="network-node-delete"),
     path("<int:pk>/update/", NetworkNodeUpdateAPIView.as_view(), name="network-node-update"),
-    path('', include(router.urls)),
+    path("", include(router.urls)),
 ]

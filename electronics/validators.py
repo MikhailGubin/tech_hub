@@ -9,20 +9,20 @@ class AddressContactValidator:
 
     def __call__(self, attrs):
 
-        city = attrs.get('city', '')
-        street = attrs.get('street', '')
-        house_number = attrs.get('house_number', '')
+        city = attrs.get("city", "")
+        street = attrs.get("street", "")
+        house_number = attrs.get("house_number", "")
 
         errors = {}
 
         if street and not city:
-            errors['city'] = 'Если указана улица, необходимо указать и город.'
+            errors["city"] = "Если указана улица, необходимо указать и город."
 
         if house_number and not city:
-            errors['city'] = 'Если указан номер дома, необходимо указать и город.'
+            errors["city"] = "Если указан номер дома, необходимо указать и город."
 
         if house_number and not street:
-            errors['street'] = 'Если указан номер дома, необходимо указать и улицу.'
+            errors["street"] = "Если указан номер дома, необходимо указать и улицу."
 
         if errors:
             raise ValidationError(errors)
@@ -39,21 +39,18 @@ class ReleaseDateProductValidator:
     def __call__(self, value):
         release_date = dict(value).get(self.field)
         if release_date > timezone.now().date():
-            raise ValidationError(
-                {"release_date": "Дата выхода продукта на рынок не может быть в будущем."}
-            )
+            raise ValidationError({"release_date": "Дата выхода продукта на рынок не может быть в будущем."})
 
 
 class SupplierNetworkNodeValidator:
-    """ Настраивает правильные условия для поля 'Поставщик' """
+    """Настраивает правильные условия для поля 'Поставщик'"""
 
     def __init__(self, instance=None):
         self.instance = instance
 
     def __call__(self, attrs):
-        node_type = attrs.get('node_type')
-        supplier = attrs.get('supplier')
-
+        node_type = attrs.get("node_type")
+        supplier = attrs.get("supplier")
 
         if self.instance is None:
             self._validate_create(attrs, node_type, supplier)
@@ -65,9 +62,7 @@ class SupplierNetworkNodeValidator:
     def _validate_create(self, attrs, node_type, supplier):
         """Валидация при создании"""
         if supplier is None and node_type != NetworkNode.NodeType.FACTORY:
-            raise ValidationError({
-                'supplier': 'Объект без поставщика может быть только Заводом.'
-            })
+            raise ValidationError({"supplier": "Объект без поставщика может быть только Заводом."})
 
         if supplier is not None and node_type is not None:
             self._validate_supplier_hierarchy(supplier, node_type)
@@ -84,9 +79,7 @@ class SupplierNetworkNodeValidator:
 
         # Проверяем только если оба значения известны
         if current_supplier is None and current_node_type != NetworkNode.NodeType.FACTORY:
-            raise ValidationError({
-                'supplier': 'Объект без поставщика может быть только Заводом.'
-            })
+            raise ValidationError({"supplier": "Объект без поставщика может быть только Заводом."})
 
         if current_supplier is not None:
             self._validate_supplier_hierarchy(current_supplier, current_node_type)
@@ -99,14 +92,12 @@ class SupplierNetworkNodeValidator:
             supplier_obj = supplier
 
         if node_type == NetworkNode.NodeType.FACTORY:
-            raise ValidationError({'supplier': 'Завод не может иметь поставщика.'})
+            raise ValidationError({"supplier": "Завод не может иметь поставщика."})
 
         if self.instance and supplier_obj.id == self.instance.id:
-            raise ValidationError({'supplier': 'Объект не может быть поставщиком для самого себя.'})
+            raise ValidationError({"supplier": "Объект не может быть поставщиком для самого себя."})
 
         if node_type == NetworkNode.NodeType.RETAIL and supplier_obj.node_type == NetworkNode.NodeType.ENTREPRENEUR:
-            raise ValidationError({
-                'supplier': 'У розничной сети не может быть поставщиком индивидуальный предприниматель.'
-            })
-
-
+            raise ValidationError(
+                {"supplier": "У розничной сети не может быть поставщиком индивидуальный предприниматель."}
+            )

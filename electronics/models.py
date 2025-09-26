@@ -1,7 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from rest_framework.serializers import ValidationError
 from django.utils import timezone
+from rest_framework.serializers import ValidationError
 
 
 class Contact(models.Model):
@@ -41,14 +41,14 @@ class Contact(models.Model):
     )
 
     def clean(self):
-        """ Проверяет связи между городом, улицей и номером дома """
+        """Проверяет связи между городом, улицей и номером дома"""
         super().clean()
         if self.street and not self.city:
-            raise ValidationError({'city': 'Если указана улица, необходимо указать и город.'})
+            raise ValidationError({"city": "Если указана улица, необходимо указать и город."})
         if self.house_number and not self.city:
-            raise ValidationError({'city': 'Если указан номер дома, необходимо указать и город.'})
+            raise ValidationError({"city": "Если указан номер дома, необходимо указать и город."})
         if self.house_number and not self.street:
-            raise ValidationError({'street': 'Если указан номер дома, необходимо указать и улицу.'})
+            raise ValidationError({"street": "Если указан номер дома, необходимо указать и улицу."})
 
     class Meta:
         verbose_name = "Контакт"
@@ -84,7 +84,7 @@ class Product(models.Model):
         super().clean()
         if self.release_date:
             if self.release_date > timezone.now().date():
-                raise ValidationError({'release_date': 'Дата выхода продукта не может быть в будущем.'})
+                raise ValidationError({"release_date": "Дата выхода продукта не может быть в будущем."})
 
     class Meta:
         verbose_name = "Продукт"
@@ -136,8 +136,8 @@ class NetworkNode(models.Model):
         help_text="Укажите задолженность перед поставщиком",
         validators=[
             # Задолженность не может быть отрицательной
-            MinValueValidator(0, message='Задолженность не может быть отрицательной.')
-        ]
+            MinValueValidator(0, message="Задолженность не может быть отрицательной.")
+        ],
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
 
@@ -145,18 +145,15 @@ class NetworkNode(models.Model):
         super().clean()
 
         if self.node_type == self.NodeType.FACTORY and self.supplier is not None:
-            raise ValidationError(
-                {'supplier': 'Завод не может иметь поставщика.'}
-            )
+            raise ValidationError({"supplier": "Завод не может иметь поставщика."})
 
         if self.supplier == self:
-            raise ValidationError({'supplier': 'Объект не может быть поставщиком для самого себя.'})
+            raise ValidationError({"supplier": "Объект не может быть поставщиком для самого себя."})
 
         if self.supplier is not None:
-            if (self.node_type == self.NodeType.FACTORY and
-                    self.supplier.node_type == self.NodeType.ENTREPRENEUR):
+            if self.node_type == self.NodeType.FACTORY and self.supplier.node_type == self.NodeType.ENTREPRENEUR:
                 raise ValidationError(
-                    {'supplier': 'У розничной сети не может быть поставщиком индивидуальный предприниматель.'}
+                    {"supplier": "У розничной сети не может быть поставщиком индивидуальный предприниматель."}
                 )
 
     class Meta:

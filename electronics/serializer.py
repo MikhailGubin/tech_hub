@@ -1,8 +1,8 @@
+from django.core.validators import MinValueValidator
 from rest_framework import serializers
 
-from electronics.models import NetworkNode, Contact, Product
-from django.core.validators import MinValueValidator
-from electronics.validators import ReleaseDateProductValidator, SupplierNetworkNodeValidator, AddressContactValidator
+from electronics.models import Contact, NetworkNode, Product
+from electronics.validators import AddressContactValidator, ReleaseDateProductValidator, SupplierNetworkNodeValidator
 
 
 class ContactSerializer(serializers.ModelSerializer):
@@ -66,12 +66,10 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
             "debt",
             "created_at",
         ]
-        read_only_fields = ["created_at",]
-        extra_kwargs = {
-            'debt': {
-                'validators': [MinValueValidator(0)]
-            }
-        }
+        read_only_fields = [
+            "created_at",
+        ]
+        extra_kwargs = {"debt": {"validators": [MinValueValidator(0)]}}
 
     def validate(self, attrs):
         """Валидация условий для поставщика"""
@@ -99,8 +97,10 @@ class NetworkNodeUpdateSerializer(serializers.ModelSerializer):
             "debt",
             "created_at",
         ]
-        read_only_fields = ["created_at", "debt",]
-
+        read_only_fields = [
+            "created_at",
+            "debt",
+        ]
 
     def validate(self, attrs):
         """Валидация условий для поставщика"""

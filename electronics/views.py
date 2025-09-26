@@ -1,37 +1,42 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import filters
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
-from rest_framework.response import Response
-
-from electronics.models import Product, Contact, NetworkNode
-from electronics.pagination import ProductsPagination, ContactsPagination, NetworkNodesPagination
-from electronics.serializer import ProductSerializer, ContactSerializer, NetworkNodeSerializer, \
-    NetworkNodeUpdateSerializer
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import TemplateHTMLRenderer
+from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
+
+from electronics.models import Contact, NetworkNode, Product
+from electronics.pagination import ContactsPagination, NetworkNodesPagination, ProductsPagination
+from electronics.serializer import (
+    ContactSerializer,
+    NetworkNodeSerializer,
+    NetworkNodeUpdateSerializer,
+    ProductSerializer
+)
 
 
 class IndexList(APIView):
     renderer_classes = [TemplateHTMLRenderer]
-    template_name = 'index.html'
+    template_name = "index.html"
 
     def get(self, request):
         text = "Добро пожаловать в онлайн платформу торговой сети электроники TechHub"
-        return Response({'text': text})
+        return Response({"text": text})
 
 
 class ProductViewSet(ModelViewSet):
     """
     CRUD для продуктов через ViewSet
     """
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['name', 'model']  # Фильтрация по точному совпадению
-    search_fields = ['name', 'model']     # Поиск по частичному совпадению
+    filterset_fields = ["name", "model"]  # Фильтрация по точному совпадению
+    search_fields = ["name", "model"]  # Поиск по частичному совпадению
     permission_classes = (IsAuthenticated,)
     pagination_class = ProductsPagination
 
@@ -40,11 +45,12 @@ class ContactViewSet(ModelViewSet):
     """
     CRUD для контактов через ViewSet
     """
+
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['country', 'city']
-    search_fields = ['country', 'city', 'email']
+    filterset_fields = ["country", "city"]
+    search_fields = ["country", "city", "email"]
     permission_classes = (IsAuthenticated,)
     pagination_class = ContactsPagination
 
@@ -54,13 +60,13 @@ class NetworkNodeCreateAPIView(CreateAPIView):
 
     queryset = NetworkNode.objects.all()
     serializer_class = NetworkNodeSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     @swagger_auto_schema(operation_id="task_create", operation_summary="Создание нового сетевого звена")
     def post(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
-    
+
 class NetworkNodeListAPIView(ListAPIView):
     """Передаёт информацию о всех звеньях сети"""
 
@@ -83,7 +89,7 @@ class NetworkNodeRetrieveAPIView(RetrieveAPIView):
 
     queryset = NetworkNode.objects.all()
     serializer_class = NetworkNodeSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     @swagger_auto_schema(
         operation_id="task_retrieve",
@@ -98,17 +104,17 @@ class NetworkNodeUpdateAPIView(UpdateAPIView):
 
     queryset = NetworkNode.objects.all()
     serializer_class = NetworkNodeUpdateSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     @swagger_auto_schema(
-    operation_id="task_full_update",
-    operation_summary="Полное обновление информации сетевого звена")
+        operation_id="task_full_update", operation_summary="Полное обновление информации сетевого звена"
+    )
     def put(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
 
     @swagger_auto_schema(
-    operation_id="task_partial_update",
-    operation_summary="Частичное обновление информации о сетевом звене")
+        operation_id="task_partial_update", operation_summary="Частичное обновление информации о сетевом звене"
+    )
     def patch(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
 
@@ -118,7 +124,7 @@ class NetworkNodeDestroyAPIView(DestroyAPIView):
 
     queryset = NetworkNode.objects.all()
     serializer_class = NetworkNodeSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     @swagger_auto_schema(operation_id="task_delete", operation_summary="Удаление сетевого звена")
     def delete(self, request, *args, **kwargs):

@@ -7,7 +7,7 @@ from users.models import User
 
 
 class UserTestCase(APITestCase):
-    """ Тесты API для модели 'User' """
+    """Тесты API для модели 'User'"""
 
     def setUp(self):
         """Создает базовый набор параметров для тестов для модели "User" """

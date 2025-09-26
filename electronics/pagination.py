@@ -16,6 +16,7 @@ class ContactsPagination(PageNumberPagination):
     page_size_query_param = "page_size"
     max_page_size = 15
 
+
 class ProductsPagination(PageNumberPagination):
     """Пагинатор для вывода объектов 'Продукт'"""
 
